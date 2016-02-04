@@ -3,6 +3,7 @@
 #include <math.h>
 #include <omp.h>
 #include "Lab3IO.h"
+#include "timer.h"
 
 #define TOL 0.0005
 
@@ -13,20 +14,12 @@ int main(int argc, char* argv[])
 	double* X;
 	double temp, error, Xnorm;
 	int* index;
-	FILE* fp;
+    double start, end;
 
-	/*Load the datasize and verify it*/
 	Lab3LoadInput(&Au, &size);
-	if ((fp = fopen("data_output","r")) == NULL){
-		printf("Fail to open the result data file!\n");
-		return 2;
-	}
-	fscanf(fp, "%d\n\n", &i);
-	if (i != size){
-		printf("The problem size of the input file and result file does not match!\n");
-		return -1;
-	}
-	/*Calculate the solution by serial code*/
+	
+	
+    GET_TIME(start);
 	X = CreateVec(size);
     index = malloc(size * sizeof(int));
     for (i = 0; i < size; ++i) {
@@ -73,26 +66,12 @@ int main(int argc, char* argv[])
             X[k] = Au[index[k]][size] / Au[index[k]][k];
         }
     }
+    GET_TIME(end);
 
-	/*compare the solution*/
-	error = 0;
-	Xnorm = 0;	
-	for (i = 0; i < size; ++i) {
-		fscanf(fp, "%lf\t", &temp);
-		error += (temp-X[i]) * (temp-X[i]);
-		Xnorm += X[i]*X[i];
-	}
-	error = sqrt(error);
-	Xnorm = sqrt(Xnorm);
-	printf("The relative error to the reference solution is %e\n", error / Xnorm);
-	if (error / Xnorm <= TOL) {
-		printf("Congratulation!!! Your result is accepted!\n");
-	}
-	else {
-		printf("Sorry, your result is wrong.\n");
-	}
+    printf("%lf\n", end-start);
+
+    Lab3SaveOutput(X, size, end-start);
 	
-	fclose(fp);
     DestroyVec(X);
     DestroyMat(Au, size);
     free(index);

@@ -4,8 +4,7 @@
 #include <omp.h>
 #include "Lab3IO.h"
 #include "timer.h"
-
-#define TOL 0.0005
+#include "rational.h"
 
 int main(int argc, char* argv[])
 {
@@ -16,12 +15,12 @@ int main(int argc, char* argv[])
 	int* index;
     double start, end;
 
-	Lab3LoadInput(&Au, &size);
+	Lab3LoadInput(&Au, &size); //Make this better
 	
-	
-    GET_TIME(start);
-	X = CreateVec(size);
+    X = CreateVec(size);
     index = malloc(size * sizeof(int));
+    
+    GET_TIME(start);
     for (i = 0; i < size; ++i) {
         index[i] = i;
     }

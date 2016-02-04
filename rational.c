@@ -14,7 +14,7 @@ rational mul(rational a, int scale) {
     return c;
 }
 
-rational div(rational a, int scale) {
+rational divide(rational a, int scale) {
     rational c;
     c.num = a.num;
     c.den = a.den*scale;

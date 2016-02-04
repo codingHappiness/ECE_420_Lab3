@@ -11,7 +11,7 @@ int main(int argc, char* argv[])
 	int i, j, k, size;
 	double** Au;
 	double* X;
-	double temp, error, Xnorm;
+	double temp;
 	int* index;
     double start, end;
 
@@ -19,12 +19,12 @@ int main(int argc, char* argv[])
 	
     X = CreateVec(size);
     index = malloc(size * sizeof(int));
-    
-    GET_TIME(start);
+
     for (i = 0; i < size; ++i) {
         index[i] = i;
     }
 
+    GET_TIME(start);
     if (size == 1) {
         X[0] = Au[0][1] / Au[0][0];
     }

@@ -6,6 +6,7 @@ typedef struct {
 } rational;
 
 rational add(rational a, rational b);
-rational mul(rational a, int scale);
-rational divide(rational a, int scale);
+rational sub(rational a, rational b);
+rational mul(rational a, rational b);
+rational divide(rational a, rational b);
 double to_double(rational a);

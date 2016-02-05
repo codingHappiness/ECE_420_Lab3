@@ -6,73 +6,74 @@
 #include "timer.h"
 #include "rational.h"
 
-int main(int argc, char* argv[])
-{
+double** Aud;
+double* Xd;
+rational** Au;
+rational* X;
+
+void swap(int i, int j) {
+	if (i != j) {
+		rational* temp = Au[i];
+		Au[i] = Au[j];
+		Au[j] = temp;
+	}
+}
+
+int main(int argc, char* argv[]) {
 	int i, j, k, size;
-	double** Au;
-	double* X;
 	double temp;
-	int* index;
-    double start, end;
+	double start, end;
 
-	Lab3LoadInput(&Au, &size); //Make this better
+	Lab3LoadInput(&Aud, &size);
+	Lab3FixInput(&Aud, &Au, &size);
 	
-    X = CreateVec(size);
-    index = malloc(size * sizeof(int));
+	Xd = CreateVec(size);
+	X =  malloc(size * sizeof(rational));
 
-    for (i = 0; i < size; ++i) {
-        index[i] = i;
-    }
+	GET_TIME(start);
+	if (size == 1) {
+		X[0] = divide(Au[0][1], Au[0][0]);
+	}
+	else{
+		for (j = 0; j < size; j++) {
+			//find next row to work on. Call it j.
+			for (i = j; i < size; i++) {
+				if (Au[i][j].num) {
+					swap(i,j);
+					break;
+				}
+			}
+			//normalize row j
+			rational a = Au[i][j];
+			Au[i][j] = (rational){1,1};
+			for (i = j+1; i < size; i++) {
+				Au[i][j] = divide(Au[i][j], a);
+			}
 
-    GET_TIME(start);
-    if (size == 1) {
-        X[0] = Au[0][1] / Au[0][0];
-    }
-    else{
-        /*Gaussian elimination*/
-        for (k = 0; k < size - 1; ++k) {
-            /*Pivoting*/
-            temp = 0;
-            for (i = k, j = 0; i < size; ++i) {
-                if (temp < Au[index[i]][k] * Au[index[i]][k]){
-                    temp = Au[index[i]][k] * Au[index[i]][k];
-                    j = i;
-                }
-            }
-            if (j != k)/*swap*/{
-                i = index[j];
-                index[j] = index[k];
-                index[k] = i;
-            }
-            /*calculating*/
-            for (i = k + 1; i < size; ++i) {
-                temp = Au[index[i]][k] / Au[index[k]][k];
-                for (j = k; j < size + 1; ++j) {
-                    Au[index[i]][j] -= Au[index[k]][j] * temp;
-                }
-            }       
-        }
-        /*Jordan elimination*/
-        for (k = size - 1; k > 0; --k) {
-            for (i = k - 1; i >= 0; --i ) {
-                temp = Au[index[i]][k] / Au[index[k]][k];
-                Au[index[i]][k] -= temp * Au[index[k]][k];
-                Au[index[i]][size] -= temp * Au[index[k]][size];
-            } 
-        }
-        /*solution*/
-        for (k=0; k< size; ++k) {
-            X[k] = Au[index[k]][size] / Au[index[k]][k];
-        }
-    }
-    GET_TIME(end);
+			//collapse this?
+			//i = row after current row
+			//j = row, column of working index
+			//k = current column
+			for (i = j+1; i < size; i++) {
+				rational a = Au[i][j];
+				for (k = 0; k < size; k++) {
+					if (k==j) { continue; }
+					Au[i][k] = sub(Au[i][k],mul(a,Au[j][k]));
+				}
+			}
+		}
+		/*solution*/
+		for (k = 0; k < size; k++) {
+			Xd[k] = to_double(Au[k][size]);
+		}
+	}
+	GET_TIME(end);
 
-    printf("%lf\n", end-start);
+	printf("%lf\n", end-start);
 
-    Lab3SaveOutput(X, size, end-start);
+	Lab3SaveOutput(Xd, size, end-start);
 	
-    DestroyVec(X);
-    DestroyMat(Au, size);
-    free(index);
+	DestroyVec(Xd);
+	DestroyMat(Aud, size);
 	return 0;	
 }

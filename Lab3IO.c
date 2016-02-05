@@ -80,6 +80,10 @@ int Lab3SaveOutput(double* x, int size, double Time){
     fclose(op);
     return 0;
 }
+
+int Lab3FixInput(double ***A, rational ***B, int *size) {
+    int i,j;
+}
  
 double** CreateMat(int NumRow, int NumCol){
     /* Allocate memory for an array

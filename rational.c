@@ -7,17 +7,24 @@ rational add(rational a, rational b) {
     return c;
 }
 
-rational mul(rational a, int scale) {
+rational sub(rational a, rational b) {
     rational c;
-    c.den = a.den;
-    c.num = a.num*scale;
+    c.den = a.den * b.den;
+    c.num = a.num*b.den - b.num*a.den;
     return c;
 }
 
-rational divide(rational a, int scale) {
+rational mul(rational a, rational b) {
     rational c;
-    c.num = a.num;
-    c.den = a.den*scale;
+    c.den = a.den*b.den;
+    c.num = a.num*b.num;
+    return c;
+}
+
+rational divide(rational a, rational b) {
+    rational c;
+    c.num = a.num*b.den;
+    c.den = a.den*b.num;
     return c;
 }
 

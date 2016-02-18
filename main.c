@@ -42,7 +42,7 @@ int main(int argc, char* argv[])
             /*Pivoting*/
             temp = 0;
             j=0;
-            #pragma omp parallel for shared(Au) private(temp) num_threads(thread_count)
+            #pragma omp parallel for shared(Au,index) private(temp,i,k) num_threads(thread_count)
             for (i = k; i < size; ++i) {
                 if (temp < Au[index[i]][k] * Au[index[i]][k]){
                     temp = Au[index[i]][k] * Au[index[i]][k];
@@ -55,7 +55,7 @@ int main(int argc, char* argv[])
                 index[k] = i;
             }
             /*calculating*/
-            #pragma omp parallel for shared(Au) private(temp) num_threads(thread_count)
+            #pragma omp parallel for shared(Au,index) private(temp,i,j,k) num_threads(thread_count) collapse(2)
             for (i = k + 1; i < size; ++i) {
                 temp = Au[index[i]][k] / Au[index[k]][k];
                 for (j = k; j < size + 1; ++j) {
@@ -66,7 +66,7 @@ int main(int argc, char* argv[])
         /*Jordan elimination*/
         //#pragma omp parallel for shared(Au) private(temp) num_threads(thread_count) //collapse(2)
         for (k = size - 1; k > 0; --k) {
-            #pragma omp parallel for shared(Au) private(temp) num_threads(thread_count)
+            #pragma omp parallel for shared(Au,index) private(temp,i,k) num_threads(thread_count)
             for (i = k - 1; i >= 0; --i ) {
                 temp = Au[index[i]][k] / Au[index[k]][k];
                 Au[index[i]][k] -= temp * Au[index[k]][k];
@@ -74,7 +74,7 @@ int main(int argc, char* argv[])
             } 
         }
         /*solution*/
-        #pragma omp parallel for shared(Au) num_threads(thread_count)
+        #pragma omp parallel for shared(Au,index) private(k) num_threads(thread_count)
         for (k=0; k< size; ++k) {
             X[k] = Au[index[k]][size] / Au[index[k]][k];
         }

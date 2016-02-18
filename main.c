@@ -4,76 +4,94 @@
 #include <omp.h>
 #include "Lab3IO.h"
 #include "timer.h"
-#include "rational.h"
 
-double** Aud;
-double* Xd;
-rational** Au;
-rational* X;
+#define TOL 0.0005
 
-void swap(int i, int j) {
-	if (i != j) {
-		rational* temp = Au[i];
-		Au[i] = Au[j];
-		Au[j] = temp;
-	}
+int thread_count;
+
+int main(int argc, char* argv[])
+{
+  int i, j, k, size;
+  double** Au;
+  double* X;
+  double temp, error, Xnorm;
+  int* index;
+  double start, end;
+
+    /* Get number of threads from command line */
+    if (argc != 2) Usage(argv[0]);
+    thread_count = strtol(argv[1], NULL, 10);  
+    if (thread_count <= 0) Usage(argv[0]);
+
+  Lab3LoadInput(&Au, &size);
+  
+  
+    GET_TIME(start);
+  X = CreateVec(size);
+    index = malloc(size * sizeof(int));
+    for (i = 0; i < size; ++i) {
+        index[i] = i;
+    }
+
+    if (size == 1) {
+        X[0] = Au[0][1] / Au[0][0];
+    }
+    else{
+        /*Gaussian elimination*/
+        for (k = 0; k < size - 1; ++k) {
+            /*Pivoting*/
+            temp = 0;
+            j=0;
+            #pragma omp parallel for shared(Au) private(temp) num_threads(thread_count)
+            for (i = k; i < size; ++i) {
+                if (temp < Au[index[i]][k] * Au[index[i]][k]){
+                    temp = Au[index[i]][k] * Au[index[i]][k];
+                    j = i;
+                }
+            }
+            if (j != k)/*swap*/{
+                i = index[j];
+                index[j] = index[k];
+                index[k] = i;
+            }
+            /*calculating*/
+            #pragma omp parallel for shared(Au) private(temp) num_threads(thread_count)
+            for (i = k + 1; i < size; ++i) {
+                temp = Au[index[i]][k] / Au[index[k]][k];
+                for (j = k; j < size + 1; ++j) {
+                    Au[index[i]][j] -= Au[index[k]][j] * temp;
+                }
+            }       
+        }
+        /*Jordan elimination*/
+        //#pragma omp parallel for shared(Au) private(temp) num_threads(thread_count) //collapse(2)
+        for (k = size - 1; k > 0; --k) {
+            #pragma omp parallel for shared(Au) private(temp) num_threads(thread_count)
+            for (i = k - 1; i >= 0; --i ) {
+                temp = Au[index[i]][k] / Au[index[k]][k];
+                Au[index[i]][k] -= temp * Au[index[k]][k];
+                Au[index[i]][size] -= temp * Au[index[k]][size];
+            } 
+        }
+        /*solution*/
+        #pragma omp parallel for shared(Au) num_threads(thread_count)
+        for (k=0; k< size; ++k) {
+            X[k] = Au[index[k]][size] / Au[index[k]][k];
+        }
+    }
+    GET_TIME(end);
+
+    printf("%lf\n", end-start);
+
+    Lab3SaveOutput(X, size, end-start);
+  
+    DestroyVec(X);
+    DestroyMat(Au, size);
+    free(index);
+  return 0;  
 }
 
-int main(int argc, char* argv[]) {
-	int i, j, k, size;
-	double temp;
-	double start, end;
-
-	Lab3LoadInput(&Aud, &size);
-	Lab3FixInput(&Aud, &Au, &size);
-	
-	Xd = CreateVec(size);
-	X =  malloc(size * sizeof(rational));
-
-	GET_TIME(start);
-	if (size == 1) {
-		X[0] = divide(Au[0][1], Au[0][0]);
-	}
-	else{
-		for (j = 0; j < size; j++) {
-			//find next row to work on. Call it j.
-			for (i = j; i < size; i++) {
-				if (Au[i][j].num) {
-					swap(i,j);
-					break;
-				}
-			}
-			//normalize row j
-			rational a = Au[i][j];
-			Au[i][j] = (rational){1,1};
-			for (i = j+1; i < size; i++) {
-				Au[i][j] = divide(Au[i][j], a);
-			}
-
-			//collapse this?
-			//i = row after current row
-			//j = row, column of working index
-			//k = current column
-			for (i = j+1; i < size; i++) {
-				rational a = Au[i][j];
-				for (k = 0; k < size; k++) {
-					if (k==j) { continue; }
-					Au[i][k] = sub(Au[i][k],mul(a,Au[j][k]));
-				}
-			}
-		}
-		/*solution*/
-		for (k = 0; k < size; k++) {
-			Xd[k] = to_double(Au[k][size]);
-		}
-	}
-	GET_TIME(end);
-
-	printf("%lf\n", end-start);
-
-	Lab3SaveOutput(Xd, size, end-start);
-	
-	DestroyVec(Xd);
-	DestroyMat(Aud, size);
-	return 0;	
+void Usage(char* prog_name) {
+  fprintf(stderr, "usage: %s <number of threads>\n", prog_name);
+  exit(0);
 }

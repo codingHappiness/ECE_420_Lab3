@@ -7,6 +7,12 @@ noops: main.c Lab3IO.c
 datagen: datagen.c
 	gcc -o datagen datagen.c Lab3IO.c
 
+datagen-windows: datagen-windows.c
+	gcc -o datagen datagen-windows.c Lab3IO.c
+
+serial:
+	gcc -o serialtester serialtester.c Lab3IO.c
+
 clean:
 	rm datagen main data_input data_output serialtester
 

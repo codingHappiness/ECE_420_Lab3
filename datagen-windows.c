@@ -83,8 +83,8 @@ int main (int argc, char* argv[]){
 	GenPerm(size, A);
 	MatMul(size, T, A, S);
 	for (i = 0; i < size; ++i){
-		temp = (double)(random() % (int)(range * DECIMAL)) / DECIMAL;
-		if (random() % 2)
+		temp = (double)(rand() % (int)(range * DECIMAL)) / DECIMAL;
+		if (rand() % 2)
 			temp *= -1;
 		b[i] = temp;
 	}
@@ -124,8 +124,8 @@ int MatGen(int n, double** S, double range){
 	/*Generate a random matrix*/
 	for (i = 0; i < n; ++i){
 		for (j = 0; j < n; ++j){
-			temp = (double)(random() % (int)(DECIMAL * range)) / DECIMAL;
-			if (random() % 2)
+			temp = (double)(rand() % (int)(DECIMAL * range)) / DECIMAL;
+			if (rand() % 2)
 				temp *= -1;
 			S[i][j] = temp;
 		}
@@ -165,7 +165,7 @@ int GenPerm(int n, double** A){
 		flag[i] = 0;
 
 	for (i = 0; i < n; ++i){
-		index = random() % remain + 1;
+		index = rand() % remain + 1;
 		j = 0; k = -1;
 		while (j < index){
 			++k;

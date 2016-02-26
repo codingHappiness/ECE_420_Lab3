@@ -24,20 +24,21 @@ int main(int argc, char* argv[]) {
 
 	Lab3LoadInput(&Au, &size);
 
-	GET_TIME(start);
 	X = CreateVec(size);
 	index = malloc(size * sizeof(int));
+	
 	for (i = 0; i < size; ++i) {
 		index[i] = i;
 	}
 
+	GET_TIME(start);
 	if (size == 1) {
 		X[0] = Au[0][1] / Au[0][0];
 	}
 	else{
 		/*Gaussian elimination*/
 		for (k = 0; k < size - 1; ++k) {
-			#pragma omp parallel for shared(Au) private(temp,i,j) num_threads(thread_count)
+			#pragma omp parallel for private(temp,i,j) num_threads(thread_count)
 			for (i = k + 1; i < size; ++i) {
 				temp = Au[index[i]][k] / Au[index[k]][k];
 				for (j = k; j < size + 1; ++j)
